@@ -10,11 +10,31 @@ import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Alert from "@mui/material/Alert";
 import Divider from "@mui/material/Divider";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import CssBaseline from "@mui/material/CssBaseline";
+
+import {
+    createTheme,
+    ThemeProvider
+} from "@mui/material/styles";
+
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
 
 function App() {
 
     const [documents, setDocuments] = useState([]);
     const [error, setError] = useState("");
+    const [darkMode, setDarkMode] = useState(false);
+
+    const theme = createTheme({
+        palette: {
+            mode: darkMode
+                ? "dark"
+                : "light"
+        }
+    });
 
     const loadDocuments = async () => {
 
@@ -49,85 +69,133 @@ function App() {
 
     return (
 
-        <Container
-            maxWidth="lg"
-            sx={{ mt: 4, mb: 4 }}
-        >
+        <ThemeProvider theme={theme}>
 
-            <Typography
-                variant="h3"
-                gutterBottom
-                fontWeight="bold"
+            <CssBaseline />
+
+            <Container
+                maxWidth="lg"
+                sx={{
+                    mt: 4,
+                    mb: 4
+                }}
             >
-                Knowledge Assistant
-            </Typography>
 
-            <Typography
-                variant="body1"
-                color="text.secondary"
-                sx={{ mb: 3 }}
-            >
-                Upload documents and ask questions using RAG.
-            </Typography>
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 2
+                    }}
+                >
 
-            {error && (
-                <Alert
-                    severity="error"
+                    <Typography
+                        variant="h3"
+                        fontWeight="bold"
+                    >
+                        Knowledge Assistant
+                    </Typography>
+
+                    <IconButton
+                        onClick={() =>
+                            setDarkMode(
+                                previous => !previous
+                            )
+                        }
+                    >
+                        {darkMode
+                            ? <LightModeIcon />
+                            : <DarkModeIcon />}
+                    </IconButton>
+
+                </Box>
+
+                <Typography
+                    variant="body1"
+                    color="text.secondary"
                     sx={{ mb: 3 }}
                 >
-                    {error}
-                </Alert>
-            )}
-
-            <Paper
-                elevation={3}
-                sx={{ p: 3, mb: 3 }}
-            >
-                <Typography
-                    variant="h5"
-                    gutterBottom
-                >
-                    Upload Document
+                    Upload documents and ask questions using RAG.
                 </Typography>
 
-                <UploadDocument
-                    onUploadSuccess={loadDocuments}
+                {error && (
+
+                    <Alert
+                        severity="error"
+                        sx={{ mb: 3 }}
+                    >
+                        {error}
+                    </Alert>
+                )}
+
+                <Paper
+                    elevation={3}
+                    sx={{
+                        p: 3,
+                        mb: 3
+                    }}
+                >
+
+                    <Typography
+                        variant="h5"
+                        gutterBottom
+                    >
+                        Upload Document
+                    </Typography>
+
+                    <UploadDocument
+                        onUploadSuccess={loadDocuments}
+                    />
+
+                </Paper>
+
+                <Paper
+                    elevation={3}
+                    sx={{
+                        p: 3,
+                        mb: 3
+                    }}
+                >
+
+                    <Typography
+                        variant="h5"
+                        gutterBottom
+                    >
+                        Uploaded Documents
+                    </Typography>
+
+                    <DocumentList
+                        documents={documents}
+                    />
+
+                </Paper>
+
+                <Divider
+                    sx={{ mb: 3 }}
                 />
-            </Paper>
 
-            <Paper
-                elevation={3}
-                sx={{ p: 3, mb: 3 }}
-            >
-                <Typography
-                    variant="h5"
-                    gutterBottom
+                <Paper
+                    elevation={3}
+                    sx={{
+                        p: 3
+                    }}
                 >
-                    Uploaded Documents
-                </Typography>
 
-                <DocumentList
-                    documents={documents}
-                />
-            </Paper>
+                    <Typography
+                        variant="h5"
+                        gutterBottom
+                    >
+                        Chat
+                    </Typography>
 
-            <Divider sx={{ mb: 3 }} />
+                    <ChatWindow />
 
-            <Paper
-                elevation={3}
-                sx={{ p: 3 }}
-            >
-                <Typography
-                    variant="h5"
-                    gutterBottom
-                >
-                    Chat
-                </Typography>
+                </Paper>
 
-                <ChatWindow />
-            </Paper>
+            </Container>
 
-        </Container>
+        </ThemeProvider>
     );
 }
 
