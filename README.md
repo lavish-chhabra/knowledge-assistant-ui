@@ -37,6 +37,18 @@ https://github.com/lavish-chhabra/knowledge-assistant
 
 ---
 
+## Screenshots
+
+### Upload Document
+
+![Upload Screen](docs/screenshots/upload-screen.png)
+
+### Chat Interface
+
+![Chat Interface](docs/screenshots/chat-screen.png)
+
+---
+
 ## Tech Stack
 
 ### Frontend
