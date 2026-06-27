@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import api from "../services/api";
 
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -25,6 +24,25 @@ function ChatWindow() {
 
     }, [messages]);
 
+    const [sessionId, setSessionId] = useState(() => {
+
+        let existingSessionId =
+            localStorage.getItem("sessionId");
+
+        if (!existingSessionId) {
+
+            existingSessionId =
+                crypto.randomUUID();
+
+            localStorage.setItem(
+                "sessionId",
+                existingSessionId
+            );
+        }
+
+        return existingSessionId;
+    });
+
     const askQuestion = async () => {
 
         if (!question.trim()) {
@@ -34,33 +52,83 @@ function ChatWindow() {
         const currentQuestion = question;
 
         setQuestion("");
+        setLoading(true);
+
+        const assistantMessageIndex =
+            messages.length + 1;
+
+        setMessages(previous => [
+
+            ...previous,
+
+            {
+                role: "user",
+                content: currentQuestion
+            },
+
+            {
+                role: "assistant",
+                content: ""
+            }
+        ]);
 
         try {
 
-            setLoading(true);
-
-            const response = await api.post(
-                "/rag/ask",
+            const response = await fetch(
+                `${import.meta.env.VITE_API_URL}/rag/stream`,
                 {
-                    question: currentQuestion
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        sessionId,
+                        question: currentQuestion
+                    })
                 }
             );
 
-            setMessages(previous => [
+            const reader =
+                response.body.getReader();
 
-                ...previous,
+            const decoder =
+                new TextDecoder();
 
-                {
-                    role: "user",
-                    content: currentQuestion
-                },
+            let answer = "";
 
-                {
-                    role: "assistant",
-                    content: response.data.answer,
-                    sources: response.data.sources
+            while (true) {
+
+                const { done, value } =
+                    await reader.read();
+
+                if (done) {
+                    break;
                 }
-            ]);
+
+                const token =
+                    decoder.decode(value);
+
+                answer += token;
+
+                setMessages(previous => {
+
+                    const updated =
+                        [...previous];
+
+                    updated[
+                        assistantMessageIndex
+                        ] = {
+
+                        ...updated[
+                            assistantMessageIndex
+                            ],
+
+                        content: answer
+                    };
+
+                    return updated;
+                });
+            }
 
         } catch (error) {
 
@@ -71,13 +139,9 @@ function ChatWindow() {
                 ...previous,
 
                 {
-                    role: "user",
-                    content: currentQuestion
-                },
-
-                {
                     role: "assistant",
-                    content: "Failed to get response from backend."
+                    content:
+                        "Failed to get response from backend."
                 }
             ]);
 
@@ -123,6 +187,26 @@ function ChatWindow() {
                     disabled={loading}
                 >
                     Ask
+                </Button>
+
+                <Button
+                    color="secondary"
+                    disabled={loading}
+                    onClick={() => {
+
+                        const newSessionId =
+                            crypto.randomUUID();
+
+                        localStorage.setItem(
+                            "sessionId",
+                            newSessionId
+                        );
+
+                        setSessionId(newSessionId);
+                        setMessages([]);
+                    }}
+                >
+                    New Chat
                 </Button>
 
             </Box>
